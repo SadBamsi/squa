@@ -1,0 +1,47 @@
+.dashboardLayout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f5f7fa;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.dashboardMain {
+  grid-area: main;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  color: #1a1a2e;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .dashboardLayout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "main";
+  }
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+}

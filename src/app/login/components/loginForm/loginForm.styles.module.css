@@ -1,0 +1,46 @@
+.loginForm {
+  width: 100%;
+}
+
+.formGroup {
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.4rem;
+}
+
+.formGroup input {
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  outline: none;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.formGroup input:focus {
+  border-color: #6a11cb;
+  box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.15);
+}
+
+.errorContainer {
+  min-height: 24px;
+  margin-bottom: 1rem;
+}
+
+.errorText {
+  color: #d32f2f;
+  font-size: 0.85rem;
+  background: #ffebee;
+  padding: 0.6rem;
+  border-radius: 8px;
+  margin: 0;
+  border: 1px solid #ffcdd2;
+}
