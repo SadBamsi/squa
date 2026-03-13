@@ -1,8 +1,7 @@
 import React from "react";
 import styles from "./button.styles.module.css";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline" | "danger";
   isLoading?: boolean;
   fullWidth?: boolean;
@@ -19,7 +18,7 @@ export function Button({
   const cn = [
     styles.btn,
     styles[variant],
-    fullWidth ? styles.fullWidth : "",
+    fullWidth && styles.fullWidth,
     className,
   ]
     .filter(Boolean)

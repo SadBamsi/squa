@@ -12,13 +12,16 @@
   padding: 0.6rem 1rem;
 }
 
+.fullWidth {
+  width: 100%;
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-/* Primary Button (Gradient, 100% width usually used in Login) */
 .primary {
   background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
   color: white;
@@ -34,7 +37,6 @@
   transform: translateY(-1px);
 }
 
-/* Secondary Button (Dark background, used for Add to Cart) */
 .secondary {
   background: #1a1a2e;
   color: white;
@@ -45,7 +47,6 @@
   background: #6a11cb;
 }
 
-/* Outline Button (Used for Load More) */
 .outline {
   background: transparent;
   color: #6a11cb;
@@ -61,7 +62,6 @@
   color: white;
 }
 
-/* Danger Button (Used for Logout) */
 .danger {
   background: transparent;
   color: #d32f2f;

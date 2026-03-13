@@ -132,7 +132,6 @@ export default function DashboardClient({
 
   const totalItemsCount = calculateTotalItems(optimisticCart);
 
-  // useTransition coordinates the optimistic update with the async action
   const [isPending, startTransition] = useTransition();
 
   const handleLoadMore = async () => {
@@ -202,6 +201,7 @@ export default function DashboardClient({
             variant="outline"
             onClick={handleLoadMore}
             isLoading={loadingMore}
+            fullWidth
           >
             Загрузить ещё
           </Button>

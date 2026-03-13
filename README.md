@@ -1,36 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NextStore — E-Commerce Dashboard
 
-## Getting Started
+Next.js 16 приложение с авторизацией, автоматическим обновлением JWT-токенов и каталогом товаров.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Стек
+
+- **Next.js 16** (App Router, Turbopack)
+- **React 19** — `useActionState`, `useOptimistic`, `useTransition`
+- **TypeScript**
+- **DummyJSON** — REST API для авторизации, товаров и корзин
+
+---
+
+## Возможности
+
+- Авторизация с хранением токенов в `httpOnly`-куках
+- Автоматический refresh access-токена при истечении срока — без участия пользователя
+- Single refresh при параллельных запросах с изоляцией между сессиями
+- SSR-загрузка данных: информация о пользователе, корзина, первые 5 товаров
+- Пагинация товаров — «Загрузить ещё»
+- Добавление товара в корзину с оптимистичным обновлением UI
+- Toast-уведомления об успехе и ошибках
+- Защищённые и публичные маршруты через `proxy.ts`
+
+---
+
+## Архитектура
+
+Все обращения к API идут **только через серверную часть** — Server Components и Server Actions. Прямые запросы браузер → API исключены.
+
+```
+src/
+├── app/
+│   ├── login/
+│   │   ├── actions.ts          # Server Action: loginAction, logoutAction
+│   │   ├── components/loginForm/
+│   │   └── page.tsx
+│   ├── dashboard/
+│   │   ├── actions.ts          # Server Actions: fetchProductsAction, addToCartAction
+│   │   ├── components/
+│   │   │   ├── dashboardClient/ # Client Component — интерактивность
+│   │   │   ├── header/
+│   │   │   └── sidebar/
+│   │   ├── error.tsx           # Error boundary для страницы
+│   │   ├── layout.tsx          # SSR: загрузка данных пользователя
+│   │   └── page.tsx            # SSR: загрузка товаров и корзины
+│   ├── error.tsx               # Глобальный error boundary
+│   └── layout.tsx
+├── lib/
+│   ├── api.ts                  # apiFetch — единая точка входа для API, retry при 401
+│   └── auth.ts                 # executeRefresh с защитой от параллельных запросов
+├── proxy.ts                    # Middleware: защита маршрутов, refresh токенов
+└── types/index.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Маршруты
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Путь         | Доступ     | Описание                                                   |
+| ------------ | ---------- | ---------------------------------------------------------- |
+| `/`          | —          | Редирект: на `/dashboard` если авторизован, иначе `/login` |
+| `/login`     | Публичный  | Форма входа                                                |
+| `/dashboard` | Защищённый | Каталог товаров, корзина                                   |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Token Refresh
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Refresh происходит в двух местах:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **`proxy.ts`** — перед каждым запросом к защищённому маршруту. Если токен истёк, обновляет его и продолжает запрос прозрачно для пользователя.
+2. **`apiFetch`** — если API вернул `401` в процессе SSR или Server Action. Делает retry с новым токеном без уведомления пользователя. При невозможности обновить токены — редирект на `/login`.
 
-## Deploy on Vercel
+```
+Параллельные запросы с истёкшим токеном
+        │
+        ▼
+refreshLocks.get(refreshToken)  ──exists──▶ ожидает существующий Promise
+        │
+      новый
+        │
+        ▼
+   POST /auth/refresh
+        │
+   ┌────┴────┐
+  ok        fail
+   │          │
+  новые     redirect
+  токены    /login
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Запуск
+
+```bash
+npm install
+npm run dev
+```
+
+Приложение доступно на [http://localhost:3000](http://localhost:3000).
+
+**Тестовые данные для входа:**
+
+```
+username: emilys
+password: emilyspass
+```
+
+---
+
+## Скриншоты
+
+### Страница входа
+
+![Login](docs/screenshots/login.png)
+
+### Dashboard
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Toast
+
+![TOAST](docs/screenshots/toast.png)
+
+---
+
+## API
+
+**Base URL:** `https://dummyjson.com`
+
+| Эндпоинт                | Метод | Описание                    |
+| ----------------------- | ----- | --------------------------- |
+| `/auth/login`           | POST  | Авторизация                 |
+| `/auth/refresh`         | POST  | Обновление токенов          |
+| `/auth/me`              | GET   | Данные пользователя         |
+| `/auth/products`        | GET   | Список товаров              |
+| `/auth/carts/user/{id}` | GET   | Корзины пользователя        |
+| `/auth/carts/add`       | POST  | Добавление товара в корзину |
