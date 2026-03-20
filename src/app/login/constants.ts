@@ -1,4 +1,6 @@
 export const LOGIN_SCHEMA = {
-  username: "string",
-  password: "string",
-};
+  username: "username",
+  password: "password",
+} as const;
+
+export type LoginFields = typeof LOGIN_SCHEMA;

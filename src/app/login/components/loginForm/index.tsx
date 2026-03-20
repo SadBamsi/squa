@@ -18,7 +18,7 @@ export default function LoginForm() {
         <label htmlFor="username">Email / Имя пользователя</label>
         <input
           id="username"
-          name={"username" satisfies keyof typeof LOGIN_SCHEMA}
+          name={LOGIN_SCHEMA.username}
           type="text"
           placeholder="e.g. emilys"
           required
@@ -30,7 +30,7 @@ export default function LoginForm() {
         <label htmlFor="password">Пароль</label>
         <input
           id="password"
-          name={"password" satisfies keyof typeof LOGIN_SCHEMA}
+          name={LOGIN_SCHEMA.password}
           type="password"
           placeholder="••••••••"
           required

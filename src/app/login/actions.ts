@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { User } from "@/types";
-import { LOGIN_SCHEMA } from "@/app/login/constants";
+import { LOGIN_SCHEMA, LoginFields } from "@/app/login/constants";
 
 export interface LoginState {
   error?: string;
@@ -13,17 +13,11 @@ export interface LoginState {
 Также теперь в самой форме мы используем LOGIN_SCHEMA для определения имен полей, что обеспечивает согласованность между формой и серверной логикой.
 */
 
-const parseData = (
-  formData: FormData,
-): Record<keyof typeof LOGIN_SCHEMA, string> => {
-  const result = {} as Record<keyof typeof LOGIN_SCHEMA, string>;
-  for (const key of Object.keys(
-    LOGIN_SCHEMA,
-  ) as (keyof typeof LOGIN_SCHEMA)[]) {
-    const value = formData.get(key);
-    if (value === null) {
-      throw new Error(`Отсутствует обязательное поле: "${key}"`);
-    }
+const parseData = (formData: FormData): Record<keyof LoginFields, string> => {
+  const result = {} as Record<keyof LoginFields, string>;
+  for (const key of Object.keys(LOGIN_SCHEMA) as (keyof LoginFields)[]) {
+    const value = formData.get(LOGIN_SCHEMA[key]);
+    if (value === null) throw new Error(`Отсутствует поле: "${key}"`);
     result[key] = value as string;
   }
   return result;
