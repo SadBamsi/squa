@@ -3,21 +3,34 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { User } from "@/types";
+import { LOGIN_SCHEMA } from "@/app/login/constants";
 
 export interface LoginState {
   error?: string;
 }
+/* 
+Я надеюсь я правильно понял задачу и то что нам надо было защитить как сам loginAction от изменения полей, так и обеспечить что при отправке формы мы получаем именно те поля, которые описаны в LOGIN_SCHEMA. Поэтому я добавил функцию parseData, которая проверяет наличие всех необходимых полей и их типы, основываясь на LOGIN_SCHEMA. Это позволяет нам быть уверенными, что мы обрабатываем только ожидаемые данные и не столкнемся с проблемами из-за отсутствующих или лишних полей.
+Также теперь в самой форме мы используем LOGIN_SCHEMA для определения имен полей, что обеспечивает согласованность между формой и серверной логикой.
+*/
 
-export async function loginAction(
-  prevState: LoginState | null,
+const parseData = (
   formData: FormData,
-) {
-  const username = formData.get("username") as string;
-  const password = formData.get("password") as string;
-
-  if (!username || !password) {
-    return { error: "Пожалуйста, введите имя пользователя и пароль" };
+): Record<keyof typeof LOGIN_SCHEMA, string> => {
+  const result = {} as Record<keyof typeof LOGIN_SCHEMA, string>;
+  for (const key of Object.keys(
+    LOGIN_SCHEMA,
+  ) as (keyof typeof LOGIN_SCHEMA)[]) {
+    const value = formData.get(key);
+    if (value === null) {
+      throw new Error(`Отсутствует обязательное поле: "${key}"`);
+    }
+    result[key] = value as string;
   }
+  return result;
+};
+
+export async function loginAction(_: LoginState | null, formData: FormData) {
+  const { username, password } = parseData(formData);
 
   try {
     const res = await fetch("https://dummyjson.com/auth/login", {

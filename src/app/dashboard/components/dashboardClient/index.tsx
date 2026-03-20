@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
-import { useState, useOptimistic, useActionState, useTransition } from "react";
+import { useState, useOptimistic, useActionState, useCallback } from "react";
 import { fetchProductsAction, addToCartAction } from "../../actions";
-import { ShoppingCart, Plus } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import styles from "./dashboardClient.styles.module.css";
 import { Product, Cart, CartProduct } from "@/types";
+import ProductCard from "./ProductCard";
 
 interface DashboardClientProps {
   userId: number;
@@ -97,7 +97,26 @@ export default function DashboardClient({
   const [optimisticCart, addOptimisticProduct] = useOptimistic(
     cartState,
     (state, productId: number) => {
-      if (!state) return state;
+      if (!state) {
+        return {
+          id: 0,
+          userId,
+          products: [{
+            id: productId,
+            title: "Загрузка...",
+            quantity: 1,
+            price: 0,
+            total: 0,
+            discountPercentage: 0,
+            discountedTotal: 0,
+            thumbnail: "",
+          }],
+          total: 0,
+          discountedTotal: 0,
+          totalProducts: 1,
+          totalQuantity: 1,
+        };
+      }
 
       const existingProductIndex = state.products.findIndex(
         (p) => p.id === productId,
@@ -132,8 +151,6 @@ export default function DashboardClient({
 
   const totalItemsCount = calculateTotalItems(optimisticCart);
 
-  const [isPending, startTransition] = useTransition();
-
   const handleLoadMore = async () => {
     if (total > 0 && products.length >= total) return;
 
@@ -149,12 +166,10 @@ export default function DashboardClient({
     setLoadingMore(false);
   };
 
-  const handleAddToCart = (productId: number) => {
-    startTransition(() => {
-      addOptimisticProduct(productId);
-      cartAction(productId);
-    });
-  };
+  const handleAddToCart = useCallback((productId: number) => {
+    addOptimisticProduct(productId);
+    cartAction(productId);
+  }, [addOptimisticProduct, cartAction]);
 
   const hasMore = total === 0 || products.length < total;
 
@@ -172,26 +187,7 @@ export default function DashboardClient({
 
       <div className={styles.productsGrid}>
         {products.map((p: Product) => (
-          <div className={styles.productCard} key={p.id}>
-            <div className={styles.productImage}>
-              <Image src={p.thumbnail} alt={p.title} width={200} height={200} />
-            </div>
-            <div className={styles.productInfo}>
-              <h3 className={styles.productTitle}>{p.title}</h3>
-              <p className={styles.productDesc}>{p.description}</p>
-
-              <div className={styles.productFooter}>
-                <span className={styles.productPrice}>${p.price}</span>
-                <Button
-                  variant="secondary"
-                  onClick={() => handleAddToCart(p.id)}
-                  isLoading={isPending}
-                >
-                  <Plus size={16} /> В корзину
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
         ))}
       </div>
 
